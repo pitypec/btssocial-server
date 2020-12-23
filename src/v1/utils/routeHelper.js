@@ -7,7 +7,7 @@ export const signInSchema = Joi.object({
 export const authSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  confirmPassword: Joi.any().valid(Joi.ref('password')).required()
+  confirmpassword: Joi.any().valid(Joi.ref('password')).required()
 });
 
 export const validateBody = (schema) => {

@@ -13,14 +13,18 @@ const app = express();
 database(app);
 dotenv.config();
 
+app.enable('trust proxy');
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/users', userRoute);
+app.use('/', (req, res, next) => {
+  res.send(`Welcome to btssocial`);
+});
 
 app.use((req, res, next) => {
   const err = new Error('404 not found');

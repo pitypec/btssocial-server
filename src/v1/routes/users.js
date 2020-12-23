@@ -18,7 +18,9 @@ import {
   updateUser,
   getProfile,
   updateProfile,
-  createProfile
+  createProfile,
+  googleOauth,
+  facebookOauth
 } from '../controllers/user.js';
 
 const router = expressRouter();
@@ -32,7 +34,9 @@ const router = expressRouter();
 
 */
 
-router.route('/').get(index);
+router
+  .route('/')
+  .get(passport.authenticate('local', { session: false }), index);
 
 router.route('/signup').post(validateBody(authSchema), signUp);
 router
@@ -41,6 +45,15 @@ router
     validateBody(signInSchema),
     passport.authenticate('local', { session: false }),
     signIn
+  );
+router
+  .route('/oauth/google')
+  .post(passport.authenticate('googleToken', { session: false }), googleOauth);
+router
+  .route('/oauth/facebook')
+  .post(
+    passport.authenticate('facebookToken', { session: false }),
+    facebookOauth
   );
 router
   .route('/:userId')

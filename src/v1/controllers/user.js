@@ -26,12 +26,18 @@ export const index = async (req, res, next) => {
 export const signUp = async (req, res, next) => {
   const { email, password } = req.value.body;
 
-  const foundUser = await User.findOne({ email });
+  const foundUser = await User.findOne({ 'local.email': email });
 
   if (foundUser) {
     return res.json(403).json({ error: 'Email already in use ' });
   }
-  const newUser = new User({ email, password });
+  const newUser = new User({
+    method: 'local',
+    local: {
+      email,
+      password
+    }
+  });
 
   await newUser.save();
 
@@ -39,7 +45,17 @@ export const signUp = async (req, res, next) => {
   return res.status(201).json({ token });
 };
 
-export const signIn = (req, res, next) => {
+export const signIn = async (req, res, next) => {
+  const token = signToken(req.user);
+  return res.status(200).json({ token });
+};
+
+export const googleOauth = async (req, res, next) => {
+  const token = signToken(req.user);
+  return res.status(200).json({ token });
+};
+
+export const facebookOauth = async (req, res, next) => {
   const token = signToken(req.user);
   return res.status(200).json({ token });
 };
@@ -108,15 +124,13 @@ export const updateProfile = async (req, res, next) => {
   const { userId } = req.params;
   const data = req.body;
 
-  const user = await User.findById(userId);
+  const user = await User.findByIdAndUpdate(userId, {
+    $set: { profile: data }
+  });
   concole.log(user.profile.id(_id));
-  // user.profile.firstName = firstName;
-  // user.profile.middleName = middleName;
-  // user.profile.lastName = lastName;
-  // user.profile.location = location;
-  // user.save();
-  // return res.status(200).json({
-  //   confirmation: 'success',
-  //   user
-  // });
+  user.save();
+  return res.status(200).json({
+    confirmation: 'success',
+    user
+  });
 };

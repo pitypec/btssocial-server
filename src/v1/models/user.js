@@ -29,17 +29,39 @@ const profileSchema = new schema({
 
 const userSchema = new schema(
   {
-    email: {
+    method: {
       type: String,
-      required: true,
-      unique: true,
-      trim: true
+      enum: ['local', 'google', 'facebook'],
+      required: true
     },
-    password: {
-      type: String,
-      required: true,
-      trim: true
+    local: {
+      email: {
+        type: String,
+        lowercase: true
+      },
+      password: {
+        type: String
+      }
     },
+    google: {
+      id: {
+        type: String
+      },
+      email: {
+        type: String,
+        lowercase: true
+      }
+    },
+    facebook: {
+      id: {
+        type: String
+      },
+      email: {
+        type: String,
+        lowercase: true
+      }
+    },
+
     profile: profileSchema
   },
   { timestamps: true }
@@ -47,11 +69,15 @@ const userSchema = new schema(
 
 userSchema.pre('save', async function (next) {
   try {
+    if (this.method !== 'local') {
+      next();
+    }
+
     const salt = await bcrypt.genSalt(10);
     // turn plain password to hashed password
-    const passwordHash = await bcrypt.hash(this.password, salt);
+    const passwordHash = await bcrypt.hash(this.local.password, salt);
     // reassigned plain password to hashed password
-    this.password = passwordHash;
+    this.local.password = passwordHash;
   } catch (error) {
     next(error);
   }
@@ -59,7 +85,7 @@ userSchema.pre('save', async function (next) {
 
 userSchema.methods.isValidPassword = async function (newPassword) {
   try {
-    return await bcrypt.compare(newPassword, this.password);
+    return await bcrypt.compare(newPassword, this.local.password);
   } catch (error) {
     throw new Error(error);
   }
